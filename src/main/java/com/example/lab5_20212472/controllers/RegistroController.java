@@ -1,5 +1,15 @@
 package com.example.lab5_20212472.controllers;
 
+import com.example.lab5_20212472.entities.Rol;
+import com.example.lab5_20212472.entities.Usuario;
+import com.example.lab5_20212472.repositories.RolRepository;
+import com.example.lab5_20212472.repositories.UsuarioRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+
 @Controller
 public class RegistroController {
 
@@ -19,23 +29,42 @@ public class RegistroController {
     }
 
     @PostMapping("/registro")
-    public String registrarUsuario(@ModelAttribute Usuario usuario, Model model) {
+    public String registrarUsuario(
+            @RequestParam String nombre,
+            @RequestParam String apellido,
+            @RequestParam String dni,
+            @RequestParam String email,
+            @RequestParam Integer edad,
+            @RequestParam String password,
+            Model model) {
+
         try {
-            // Validación básica
-            if(usuarioRepository.existsByEmail(usuario.getEmail())) {
+            // Validaciones
+            if(usuarioRepository.existsByEmail(email)) {
                 model.addAttribute("error", "El email ya está registrado");
                 return "registro";
             }
 
-            // Asignar rol USER por defecto
+            if(usuarioRepository.existsByDni(dni)) {
+                model.addAttribute("error", "El DNI ya está registrado");
+                return "registro";
+            }
+
             Rol rolUser = rolRepository.findByNombre("USER")
                     .orElseThrow(() -> new RuntimeException("Rol USER no encontrado"));
 
-            usuario.setPwd(passwordEncoder.encode(usuario.getPwd()));
-            usuario.setIdrol(rolUser.getIdrol());
-            usuario.setActivo(1);
+            // Crear y guardar el nuevo usuario
+            Usuario nuevoUsuario = new Usuario();
+            nuevoUsuario.setNombre(nombre);
+            nuevoUsuario.setApellido(apellido);
+            nuevoUsuario.setDni(dni);
+            nuevoUsuario.setEmail(email);
+            nuevoUsuario.setEdad(edad);
+            nuevoUsuario.setPwd(passwordEncoder.encode(password));
+            nuevoUsuario.setRol(rolUser);
+            nuevoUsuario.setActivo(1);
 
-            usuarioRepository.save(usuario);
+            usuarioRepository.save(nuevoUsuario);
 
             return "redirect:/login?registroExitoso";
         } catch (Exception e) {
@@ -44,3 +73,4 @@ public class RegistroController {
         }
     }
 }
+
