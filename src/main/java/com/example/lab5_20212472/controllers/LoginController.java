@@ -7,22 +7,29 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+
 @Controller
 public class LoginController {
+
     @GetMapping("/login")
     public String showLoginForm(
             @RequestParam(value = "error", required = false) String error,
             @RequestParam(value = "logout", required = false) String logout,
             Model model) {
 
-        if (error != null) model.addAttribute("error", "Credenciales incorrectas");
-        if (logout != null) model.addAttribute("logout", "Sesión cerrada");
+
+        if (error != null) model.addAttribute("error", "Usuario o contraseña incorrectos");
+        if (logout != null) model.addAttribute("logout", "Has cerrado sesión correctamente");
+
         return "login";
     }
+
+
 
     @GetMapping("/redirectByRole")
     public String redirectByRole() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
         if (auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
             return "redirect:/admin/usuarios";
         } else {
